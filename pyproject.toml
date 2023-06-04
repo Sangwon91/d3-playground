@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "d3-playground"
+version = "0.1.0"
+description = ""
+authors = ["Sangwon <lsw91.main@gmail.com>"]
+readme = "README.md"
+packages = [{include = "d3_playground"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+matplotlib = "^3.7.1"
+numpy = "^1.24.3"
+pandas = "^2.0.2"
+seaborn = "^0.12.2"
+plotly = "^5.14.1"
+ipykernel = "^6.23.1"
+bokeh = "^3.1.1"
+rich = "^13.4.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
