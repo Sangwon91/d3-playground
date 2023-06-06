@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<head>
+<script src="https://d3js.org/d3.v7.js"></script>
+</head>
+<!-- Create a div where the graph will take place -->
+<body>
+<div id="my_dataviz"></div>
+<svg>
+<text x="50" y="50" transform="rotate(45)">rotate(45)</text>
+</svg>
+
+<svg width="500" height="500">
+    <text x="50" y="50" transform="rotate(15) translate(5)">rotate(45) translate(5)</text>
+    <text x="50" y="50" transform="rotate(15) translate(125)">rotate(45) translate(5)</text>
+</svg>
+
+
+<script>
+    // Some constants controlling the graph appearance
+    const PADDING_BUBBLE = 0 // distance between edge end and bubble
+    const PADDING_LABEL = 5 // distance between edge end and engineer name
+    const BUBBLE_SIZE_MIN = 4
+    const BUBBLE_SIZE_MAX = 8
+
+    var diameter = 800,
+        radius = diameter / 2,
+        // innerRadius = radius - 170; // between center and edge end
+        innerRadius = radius - 170; // between center and edge end
+
+    // The 'cluster' function takes 1 argument as input.
+    // It also has methods (??) like cluster.separation(),
+    // cluster.size() and cluster.nodeSize()
+    // var cluster = d3.tree()
+    var cluster = d3.cluster()
+        // .nodeSize([1000, 1000])
+        .separation(function(a, b) {
+          return (a.parent == b.parent) ? 0.2 : 2; // 그룹 간의 각도 간격을 조절
+        })
+        .size([360, innerRadius]);
+
+    var line = d3.radialLine()
+        .curve(d3.curveBundle.beta(0.55))
+        .radius(d=> d.y)
+        .angle(d => d.x / 180 * Math.PI);
+
+    var svg = d3.select("#my_dataviz").append("svg")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .append("g")
+        // Change center of the coordinate system to the center of the svg.
+        .attr("transform", `translate(${radius}, ${radius})`);
+
+    // Color gradient.
+    var defs = svg.append("defs");
+    defs.append("linearGradient")
+        .attr("id", "linear-gradient")
+        .selectAll("stop")
+        .data([
+            // {offset: "0%", color: "#2c7bb6"},
+            // {offset: "12.5%", color: "#00a6ca"},
+            // {offset: "25%", color: "#00ccbc"},
+            // {offset: "37.5%", color: "#90eb9d"},
+            // {offset: "50%", color: "#ffff8c"},
+            // {offset: "62.5%", color: "#f9d057"},
+            // {offset: "75%", color: "#f29e2e"},
+            // {offset: "87.5%", color: "#e76818"},
+            // {offset: "100%", color: "#d7191c"}
+            {offset: "0%", color: "blue"},
+            {offset: "50%", color: "gray"},
+            {offset: "100%", color: "red"},
+        ])
+        .enter().append("stop")
+        .attr("offset", d => d.offset)
+        .attr("stop-color", d => d.color);
+
+    var link = svg.append("g").selectAll(".link"),
+        label = svg.append("g").selectAll(".label"),
+        bubble = svg.append("g").selectAll(".bubble");
+
+    // Add a scale for bubble size
+    var bubbleSizeScale = d3.scaleLinear()
+        .domain([0, 100])
+        .range([BUBBLE_SIZE_MIN, BUBBLE_SIZE_MAX]);
+
+    var data;
+
+    var k = 2;
+    var color = t => d3.interpolateRdBu(1 - t);
+
+
+    // Scale for the bubble size
+    // d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/data_hierarchical_edge_bundling.json").then(hierarchicalData => {
+    d3.json("./link.json").then(hierarchicalData => {
+    // d3.json("./flare_list.json").then(hierarchicalData => {
+        data = hierarchicalData;
+        // If wanna see your data
+        console.log(hierarchicalData)
+        console.log('test', packageHierarchy(hierarchicalData))
+
+        // Reformat the data
+        // sum을 수행하여 value를 생성한다.
+        // var hierarchicalData = {
+        //     name: "A",
+        //     children: [
+        //         {
+        //         name: "B",
+        //         size: 10,
+        //         children: [
+        //             { name: "D", size: 5 },
+        //             { name: "E", size: 7 }
+        //         ]
+        //         },
+        //         { name: "C", size: 20 }
+        //     ]
+        // };
+        // 다음과 같이 변환됨
+        // {
+        //     name: "A",
+        //     value: 42, // 10 + 5 + 7 + 20
+        //     children: [
+        //         {
+        //         name: "B",
+        //         size: 10,
+        //         value: 22, // 5 + 7 + 10
+        //         children: [
+        //             { name: "D", size: 5, value: 5 },
+        //             { name: "E", size: 7, value: 7 }
+        //         ]
+        //         },
+        //         { name: "C", size: 20, value: 20 }
+        //     ]
+        // }
+        var root = packageHierarchy(hierarchicalData)
+            //debugger;
+            .sum(function (d) { console.log(d); return d.size; });
+
+        console.log('root', root)
+
+        // Build an object that gives feature of each leaves
+        // 이 과정을 통해서 root에 x와 y가 추가된다.
+        // 여기서 x는 각도, y는 반지름에 해당한다.
+        // x = 0 수직 위 방향이며 360으로 진행할 때 시계 방향으로 움직인다.
+        cluster(root);
+
+        // 자식 노드를 가지지 않는 최하위 노드를 추출한다.
+        leaves = root.leaves()
+
+        paths = packageImports(leaves);
+        console.log('imports', paths);
+        // Leaves is an array of Objects. 1 item = one leaf.
+        // Provides x and y for leaf position in the svg. Also gives details
+        // about its parent.
+
+        //
+        var grads = svg.append("defs").selectAll("linearGradient")
+          .data(paths)
+          // 아마도 최신 버전에서는 자동으로 되는 것 같다.
+          .enter().append("linearGradient")
+          .each(function (d) { d.source = d[0], d.target = d[d.length - 1]; console.log('d', d);})
+          //Create a unique gradient id per chord: e.g. "chordGradient-0-4"
+          .attr("id", function(d, i) {
+              return `chordGradient-${i}`;
+          })
+          //Instead of the object bounding box, use the entire SVG for setting locations
+          //in pixel locations instead of percentages (which is more typical)
+          .attr("gradientUnits", "userSpaceOnUse")
+          //The full mathematical formula to find the x and y locations
+          //of the Avenger's source chord
+          .attr("x1", function(d,i) {
+              console.log('d2', d);
+              console.log(d.source.x)
+              console.log('x1', d.source.y*Math.cos(d.source.x/180*Math.PI - Math.PI/2));
+              return d.source.y*Math.cos(d.source.x/180*Math.PI - Math.PI/2);
+          })
+          .attr("y1", function(d,i) {
+              return d.source.y*Math.sin(d.source.x/180*Math.PI - Math.PI/2);
+          })
+          //Find the location of the target Avenger's chord
+          .attr("x2", function(d,i) {
+              return d.source.y*Math.cos(d.target.x/180*Math.PI - Math.PI/2);
+          })
+          .attr("y2", function(d,i) {
+              return d.source.y*Math.sin(d.target.x/180*Math.PI - Math.PI/2);
+          })
+        // grads.append("stop")
+        //   .attr("offset", "0%")
+        //   .attr("stop-color", 'red')
+        // grads.append("stop")
+        //   .attr("offset", "100%")
+        //   .attr("stop-color", 'blue');
+        grads
+          .selectAll("stop")
+          .data([
+              // {offset: "0%", color: "#2c7bb6"},
+              // {offset: "12.5%", color: "#00a6ca"},
+              // {offset: "25%", color: "#00ccbc"},
+              // {offset: "37.5%", color: "#90eb9d"},
+              // {offset: "50%", color: "#ffff8c"},
+              // {offset: "62.5%", color: "#f9d057"},
+              // {offset: "75%", color: "#f29e2e"},
+              // {offset: "87.5%", color: "#e76818"},
+              // {offset: "100%", color: "#d7191c"}
+              {offset: "0%", color: "red"},
+              {offset: "35%", color: "red"},
+              // {offset: "50%", color: "#9400D3"},
+              // {offset: "50%", color: "#E2E2E2"},
+              {offset: "50%", color: "gray"},
+              {offset: "65%", color: "blue"},
+              {offset: "100%", color: "blue"},
+          ])
+          .enter().append("stop")
+          .attr("offset", d => d.offset)
+          .attr("stop-color", d => d.color);
+
+        link = link
+            .data(paths)
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", d => {
+              // console.log('line(d)', line(d));
+              return line(d)
+            })
+            .attr("fill", "none")
+            // .attr('stroke-width', d => `${d.size*10}`)
+            .attr('opacity', 0.25)
+            .attr('stroke-width', d => d.source.data.size)
+            .attr('stroke-linecap', 'round')
+            .attr("stroke", (d, i) => {
+              return `url(#chordGradient-${i})`;
+            });
+
+        label = label
+            .data(leaves)
+            .enter().append("text")
+            .attr("class", "label")
+            .attr("dy", "0.31em")
+            // 각도가 90도 (가로로 누음) 일 때 텍스트의 각도도 0이어야 한다.
+            // 각도가 0도 (수직 위 방향)일 때 텍스트의 각도는 -90도 이어야 한다.
+            // 180도가 넘어가면 180도 한 번 더 돌려야 함. 180도에서 181도가 되는
+            // 경우를 생각하면 쉽다.
+            // 돌아간 상태에서 translate하면 텍스트의 진행방향으로 움직이기 때문에 따로 어렵게 설정할 필요는 없다.
+            // .transition()
+            // .duration(1000)
+            .attr("transform", d => `rotate(${d.x - 90}) translate(${d.y + PADDING_LABEL},0) ${d.x < 180 ? "" : "rotate(180)"}`)
+            .attr("text-anchor", d => d.x < 180 ? "start" : "end")
+            .text(d => d.data.parent.key);
+            // .text(d => d.data.name);
+
+        // bubble = bubble
+        //     .data(leaves)
+        //     .enter().append("circle")
+        //     .attr("class", "bubble")
+        //     // 각도 맞추고 진행하면 됨.
+        //     .attr("transform", d => `rotate(${d.x - 90}) translate(${d.y + PADDING_BUBBLE}, 0)`)
+        //     .attr('r', d => bubbleSizeScale(d.value))
+        //     .attr('stroke', 'black')
+        //     .attr('fill', 'black')
+        //     .style('opacity', 0.2)
+
+        // var color = d3.interpolateRainbow;
+
+        // var path = d3.select("path").remove();
+
+        // d3.select("svg").selectAll("path")
+        //     .data(quads(samples(path.node(), 8)))
+        //   .enter().append("path")
+        //     .style("fill", function(d) { return color(d.t); })
+        //     .style("stroke", function(d) { return color(d.t); })
+        //     .attr("d", function(d) { return lineJoin(d[0], d[1], d[2], d[3], 32); });
+
+    })
+
+    // Lazily construct the package hierarchy from class names.
+    function packageHierarchy(classes) {
+        // classes에 포함된 데이터는 a.b.c 이런식.
+        // classes[0]
+        // {name: 'a.b.c', size: 3, imports: ['a.b.d', ...]}
+        var map = {};
+
+        function find(name, data) {
+            var node = map[name];
+            var i;
+
+            if (!node) {
+                // data가 null, undefined, false, 0, 빈 문자열 등의 falsy 값이면
+                // {} 부분이 실행됩니다.
+                node = map[name] = data || { name: name, children: [] };
+                // console.log('name', name)
+                // substring이 empty인 경우는 딱히 할 게 없음.
+                if (name.length) {
+                    // console.log('name in', name)
+                    // a.b.c 이면 a.b를 대상으로 find 함수 재실행.
+                    parent_name = name.substring(0, i = name.lastIndexOf("."));
+                    // parent를 호출하는 경우는 data를 추가로 넣어주지 않기 때문에
+                    // 가장 하위 level만 데이터를 가지고 있게 된다.
+                    // 그리고 자연스럽게 children 정보는 없음.
+                    node.parent = find(parent_name);
+                    // 참조 값을 넣음.
+                    node.parent.children.push(node);
+                    // 해당 package의 이름을 추출.
+                    node.key = name.substring(i + 1);
+                }
+            }
+
+            return node;
+        }
+
+        // 모든 페키지에 대하여 계층도 생성.
+        classes.forEach(function (d) {
+            find(d.name, d);
+        });
+
+        // console.log('map', map);
+
+        return d3.hierarchy(map[""]);
+    }
+
+    // Return a list of imports for the given array of nodes.
+    function packageImports(nodes) {
+        var map = {};
+        var imports = [];
+
+        // Compute a map from name to node.
+        nodes.forEach(function (d) {
+            map[d.data.name] = d;
+        });
+
+        // For each import, construct a link from the source to target node.
+        nodes.forEach(d => {
+            if (d.data.imports) d.data.imports.forEach(function (i) {
+                path = map[d.data.name].path(map[i])
+
+                // console.log('path', path);
+
+                imports.push(path);
+            });
+        });
+
+        return imports;
+    }
+
+    // Sample the SVG path uniformly with the specified precision.
+function samples(path, precision) {
+  var n = path.getTotalLength(), t = [0], i = 0, dt = precision;
+  while ((i += dt) < n) t.push(i);
+  t.push(n);
+  return t.map(function(t) {
+    var p = path.getPointAtLength(t), a = [p.x, p.y];
+    a.t = t / n;
+    return a;
+  });
+}
+
+// Compute quads of adjacent points [p0, p1, p2, p3].
+function quads(points) {
+  return d3.range(points.length - 1).map(function(i) {
+    var a = [points[i - 1], points[i], points[i + 1], points[i + 2]];
+    a.t = (points[i].t + points[i + 1].t) / 2;
+    return a;
+  });
+}
+
+// Compute stroke outline for segment p12.
+function lineJoin(p0, p1, p2, p3, width) {
+  var u12 = perp(p1, p2),
+      r = width / 2,
+      a = [p1[0] + u12[0] * r, p1[1] + u12[1] * r],
+      b = [p2[0] + u12[0] * r, p2[1] + u12[1] * r],
+      c = [p2[0] - u12[0] * r, p2[1] - u12[1] * r],
+      d = [p1[0] - u12[0] * r, p1[1] - u12[1] * r];
+
+  if (p0) { // clip ad and dc using average of u01 and u12
+    var u01 = perp(p0, p1), e = [p1[0] + u01[0] + u12[0], p1[1] + u01[1] + u12[1]];
+    a = lineIntersect(p1, e, a, b);
+    d = lineIntersect(p1, e, d, c);
+  }
+
+  if (p3) { // clip ab and dc using average of u12 and u23
+    var u23 = perp(p2, p3), e = [p2[0] + u23[0] + u12[0], p2[1] + u23[1] + u12[1]];
+    b = lineIntersect(p2, e, a, b);
+    c = lineIntersect(p2, e, d, c);
+  }
+
+  return "M" + a + "L" + b + " " + c + " " + d + "Z";
+}
+
+// Compute intersection of two infinite lines ab and cd.
+function lineIntersect(a, b, c, d) {
+  var x1 = c[0], x3 = a[0], x21 = d[0] - x1, x43 = b[0] - x3,
+      y1 = c[1], y3 = a[1], y21 = d[1] - y1, y43 = b[1] - y3,
+      ua = (x43 * (y1 - y3) - y43 * (x1 - x3)) / (y43 * x21 - x43 * y21);
+  return [x1 + ua * x21, y1 + ua * y21];
+}
+
+// Compute unit vector perpendicular to p01.
+function perp(p0, p1) {
+  var u01x = p0[1] - p1[1], u01y = p1[0] - p0[0],
+      u01d = Math.sqrt(u01x * u01x + u01y * u01y);
+  return [u01x / u01d, u01y / u01d];
+}
+
+</script>
+</body>

@@ -1,0 +1,160 @@
+[
+    {
+        "name": "energy.ESS \uaca9\ub0a9\uace0.out",
+        "imports": [
+            "energy.\uacf5\uae30\uc5f4.in",
+            "energy.\uc624\ud53c\uc2a4.in",
+            "energy.\ud559\uad50.in"
+        ],
+        "size": 6.558135936199125
+    },
+    {
+        "name": "energy.\uacbd\uae30\uc7a5.out",
+        "imports": [
+            "energy.\uacf5\uae30\uc5f4.in",
+            "energy.\uc1fc\ud551\ubab0.in"
+        ],
+        "size": 4.081984424657464
+    },
+    {
+        "name": "energy.\uacf5\uae30\uc5f4.in",
+        "imports": [],
+        "size": 5.412806624750124
+    },
+    {
+        "name": "energy.\uacf5\uae30\uc5f4.out",
+        "imports": [
+            "energy.\uc544\ud30c\ud2b8.in",
+            "energy.\ud559\uad50.in"
+        ],
+        "size": 3.1548437302171566
+    },
+    {
+        "name": "energy.\uacf5\uc7a5.out",
+        "imports": [
+            "energy.\uacf5\uae30\uc5f4.in",
+            "energy.\ud638\ud154.in"
+        ],
+        "size": 5.205399491144495
+    },
+    {
+        "name": "energy.\uae30\uc9c0\uad6d.out",
+        "imports": [],
+        "size": 9.04385695411499
+    },
+    {
+        "name": "energy.\ub0c9\ub3d9\ucc3d\uace0.out",
+        "imports": [],
+        "size": 4.057519439023441
+    },
+    {
+        "name": "energy.\ubaa9\uc695\ud0d5.in",
+        "imports": [],
+        "size": 9.944621223801036
+    },
+    {
+        "name": "energy.\ubaa9\uc695\ud0d5.out",
+        "imports": [
+            "energy.\uc1fc\ud551\ubab0.in",
+            "energy.\uc624\ud53c\uc2a4.in",
+            "energy.\ud559\uad50.in",
+            "energy.\ud638\ud154.in"
+        ],
+        "size": 5.18762256141586
+    },
+    {
+        "name": "energy.\ubc1c\uc804\uc18c.out",
+        "imports": [
+            "energy.\uacf5\uae30\uc5f4.in",
+            "energy.\uc624\ud53c\uc2a4.in",
+            "energy.\ud638\ud154.in"
+        ],
+        "size": 3.922132598474935
+    },
+    {
+        "name": "energy.\uc1fc\ud551\ubab0.in",
+        "imports": [],
+        "size": 5.01382995138554
+    },
+    {
+        "name": "energy.\uc1fc\ud551\ubab0.out",
+        "imports": [],
+        "size": 5.068618381461464
+    },
+    {
+        "name": "energy.\uc218\uc601\uc7a5.in",
+        "imports": [],
+        "size": 3.074355231645561
+    },
+    {
+        "name": "energy.\uc218\uc601\uc7a5.out",
+        "imports": [
+            "energy.\uc544\ud30c\ud2b8.in"
+        ],
+        "size": 9.166777603234209
+    },
+    {
+        "name": "energy.\uc544\ud30c\ud2b8.in",
+        "imports": [],
+        "size": 5.310046457870894
+    },
+    {
+        "name": "energy.\uc544\ud30c\ud2b8.out",
+        "imports": [
+            "energy.\uc218\uc601\uc7a5.in"
+        ],
+        "size": 8.817067001811052
+    },
+    {
+        "name": "energy.\uc624\ud53c\uc2a4.in",
+        "imports": [],
+        "size": 10.512973536043397
+    },
+    {
+        "name": "energy.\uc624\ud53c\uc2a4.out",
+        "imports": [
+            "energy.\uc1fc\ud551\ubab0.in"
+        ],
+        "size": 3.89263254505693
+    },
+    {
+        "name": "energy.\ud0dc\uc591\uc5f4.out",
+        "imports": [
+            "energy.\ud559\uad50.in"
+        ],
+        "size": 5.156836078911857
+    },
+    {
+        "name": "energy.\ud14c\uc774\ud130\uc13c\ud130.out",
+        "imports": [
+            "energy.\uc1fc\ud551\ubab0.in",
+            "energy.\uc218\uc601\uc7a5.in"
+        ],
+        "size": 7.226873082833833
+    },
+    {
+        "name": "energy.\ud559\uad50.in",
+        "imports": [],
+        "size": 7.606201935859213
+    },
+    {
+        "name": "energy.\ud559\uad50.out",
+        "imports": [
+            "energy.\uc1fc\ud551\ubab0.in"
+        ],
+        "size": 3.098190554250568
+    },
+    {
+        "name": "energy.\ud638\ud154.in",
+        "imports": [],
+        "size": 9.119597605049215
+    },
+    {
+        "name": "energy.\ud638\ud154.out",
+        "imports": [
+            "energy.\uc1fc\ud551\ubab0.in",
+            "energy.\uc218\uc601\uc7a5.in"
+        ],
+        "size": 9.239616474838742
+    }
+]
