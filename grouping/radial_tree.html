@@ -16,7 +16,7 @@ d3.json("group.json").then(d => {
 
   node = Tree(d, {
     label: d => d.name,
-    // tree: d3.cluster,
+    tree: d3.cluster,
     width: 500,
     height: 500,
     margin: 100,
@@ -24,11 +24,11 @@ d3.json("group.json").then(d => {
     // tree: d3.cluster,
   });
 
-  // const body = document.querySelector("body");
-  // body.appendChild(node);
+  const body = document.querySelector("body");
+  body.appendChild(node);
 
   // downloadSVGAsImage(node.outerHTML, 'file.svg');
-  captureScreenshot(node);
+  // captureScreenshot(node);
 });
 
 

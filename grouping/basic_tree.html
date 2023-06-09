@@ -14,6 +14,7 @@ d3.json("group.json").then(d => {
   width = 800;
 
   tree = d3.tree().nodeSize([dx, dy]);
+  // tree = d3.cluster();
   treeLink = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 
   node = graph(family);

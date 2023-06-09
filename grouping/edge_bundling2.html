@@ -42,7 +42,7 @@
         .size([360, innerRadius]);
 
     var line = d3.radialLine()
-        .curve(d3.curveBundle.beta(0.55))
+        .curve(d3.curveBundle.beta(0.8))
         .radius(d=> d.y)
         .angle(d => d.x / 180 * Math.PI);
 
